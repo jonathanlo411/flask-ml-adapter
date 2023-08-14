@@ -1,0 +1,6 @@
+# Enviroment
+*env
+
+# Python Cache and Backups
+__pycache__
+.ipynb_checkpoints
