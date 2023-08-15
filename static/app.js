@@ -103,6 +103,10 @@ fetch( "/api/model?" + new URLSearchParams({
     }
 )
 `
+    // Inidicate Loading
+    document.getElementById("identifier").innerHTML = submitData.PassengerId
+    document.getElementById("pred-val").innerHTML = "..."
+    document.getElementById("act-val").innerHTML = submitData.Survived
 
     // Call model
     try {
@@ -112,9 +116,7 @@ fetch( "/api/model?" + new URLSearchParams({
         document.getElementById("result-dataset").innerHTML = "titanic.csv"
         document.getElementById("result-model").innerHTML = model
         document.getElementById("result-target").innerHTML = point ? "point" : "all"
-        document.getElementById("identifier").innerHTML = submitData.PassengerId
         document.getElementById("pred-val").innerHTML = modelPrediction.prediction
-        document.getElementById("act-val").innerHTML = submitData.Survived
     } catch (error) {
         document.getElementById("pred-val").innerHTML = "ERROR"
     }
