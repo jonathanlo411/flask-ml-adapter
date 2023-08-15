@@ -15,7 +15,7 @@ This application demonstrates how python models can be called from a different c
 2. Create your virtual environment and install the requirements.
 ```bash
 python3 -m venv flask-env
-. flask-env/Scripts/activate  //or . flask-env/bin/activate
+. flask-env/Scripts/activate  #or . flask-env/bin/activate
 pip install -r requirements.txt
 ```
 3. Launch Flask
