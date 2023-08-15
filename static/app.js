@@ -103,6 +103,10 @@ fetch( "/api/model?" + new URLSearchParams({
     }
 )
 `
+    document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+    });
+
     // Inidicate Loading
     document.getElementById("identifier").innerHTML = submitData.PassengerId
     document.getElementById("pred-val").innerHTML = "..."

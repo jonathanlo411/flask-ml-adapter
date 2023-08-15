@@ -7,8 +7,10 @@
     <script src="{{url_for('static', filename='app.js')}}" defer></script>
     <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 </head>
 <body>
+    
     <div class="container" id="top">
         <h1>Flask ML Adapter</h1>
         <p>An adapter example to recieve model responses over HTTPS. Full code and details <a href="https://github.com/jonathanlo411/flask-ml-adapter">here</a>.</p>
@@ -65,17 +67,18 @@
         <div id="samples">
             <div class="code" id="curl">
                 <label>curl</label>
-                <pre><code>...</code></pre>
+                <pre><code class="language-bash">...</code></pre>
             </div>
             <div class="code" id="python">
                 <label>Python</label>
-                <pre><code>...</code></pre>
+                <pre><code class="language-python">...</code></pre>
             </div>
             <div class="code" id="javascript">
                 <label>Javascript</label>
-                <pre><code>...</code></pre>
+                <pre><code class="language-python">...</code></pre>
             </div>
         </div>
     </div>
 </body>
 </html>
+
