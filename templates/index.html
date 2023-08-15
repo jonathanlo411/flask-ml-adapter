@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask ML Adapter</title>
+    <script src="{{url_for('static', filename='app.js')}}" defer></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+</head>
+<body>
+    <div class="container" id="top">
+        <h1>Flask ML Adapter</h1>
+        <p>An adapter example to recieve model responses over HTTPS. Full code and details <a href="https://github.com/jonathanlo411/flask-ml-adapter">here</a>.</p>
+    </div>
+    <div class="container" id="bottom">
+        <h2>Model Selector</h2>
+        <p>Use the dropdown to select desired model. Then select a value from the dataset to predict. Each model is trained on the Titanic dataset found <a href="https://www.kaggle.com/competitions/titanic">here</a>.</p>
+        <select id="model-select">
+            {%for model in context.models%}
+            <option value="{{ model }}">{{ model }}</option>
+            {%endfor%}
+        </select>
+        <table id="titanic-table">
+            <thead><tr>
+                <th></th>
+            </thead></tr>
+            <tbody><tr>
+                <td style="text-align: center;">Loading Dataset...</td>
+            </tbody></tr>
+        </table>
+        <div id="pagination-wrap">
+            <button class="pagination-bt" id="firstButton"><span class="material-symbols-outlined">first_page</span></button> 
+            <button class="pagination-bt" id="prevButton"><span class="material-symbols-outlined">chevron_left</span></button> 
+            <button class="pagination-bt" id="nextButton"><span class="material-symbols-outlined">chevron_right</span></button>
+            <button class="pagination-bt" id="lastButton"><span class="material-symbols-outlined">last_page</span></button> 
+        </div>
+        <div id="submit">
+            <button id="s-point">Submit Classifier Request</button>
+            <button id="s-all">Classify All Points</button>
+        </div>
+    </div>
+    <div class="container" id="results">
+        <h2>Results</h2>
+        <div id="result-details">
+            <span><h3 class="result-key">Dataset: </h3><h3 id="result-dataset" class="result-item">N/A</h3></span>
+            <span><h3 class="result-key">Model: </h3><h3 id="result-model" class="result-item">N/A</h3></span>
+            <span><h3 class="result-key">Target: </h3><h3 id="result-target" class="result-item">N/A</h3></span>
+        </div>
+        <table>
+            <thead><tr>
+                <th>PassengerId</th>
+                <th>Predicted</th>
+                <th>Actual</th>
+            </thead></tr>
+            <tbody><tr>
+                <td id="identifier">...</td>
+                <td id="pred-val">...</td>
+                <td id="act-val">...</td>
+            </tbody></tr>
+        </table>
+    </div>
+    <div class="container" id="Requests">
+        <h2>Requests</h2>
+        <div id="samples">
+            <div class="code" id="curl">
+                <label>curl</label>
+                <pre><code>...</code></pre>
+            </div>
+            <div class="code" id="python">
+                <label>Python</label>
+                <pre><code>...</code></pre>
+            </div>
+            <div class="code" id="javascript">
+                <label>Javascript</label>
+                <pre><code>...</code></pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
