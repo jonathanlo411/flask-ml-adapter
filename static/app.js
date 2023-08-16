@@ -30,6 +30,8 @@ async function handleModelReq(e) {
         // Handle Selected Table Data
         if (!rowSelected) {
             alert("Please select a data point if using a singular classifier.")
+            toggleSubmitButtons(true)
+            return
         } else {
             for (let i = 0; i < tableHeaders.length; i ++) {
                 submitData[dataHeaders[i]] = rowSelected.childNodes[i + 1].innerHTML
@@ -228,7 +230,7 @@ fetch( "/api/model?" + new URLSearchParams({
         }
         renderResultTable();
     } catch {
-
+        document.getElementById("pred-val").innerHTML = "ERROR"
     }
 
     // Re-enable buttons
@@ -300,9 +302,29 @@ async function initTable() {
     document.querySelector('#nextButton').addEventListener('click', nextPage, false);
     document.querySelector('#prevButton').addEventListener('click', previousPage, false);
     document.querySelector('#lastButton').addEventListener('click', lastPage, false);
+    document.querySelector("#page-input").addEventListener("input", (e) => {
+        if (e.data) {
+            const inputedNum = parseInt(document.querySelector("#page-input").value)
+            if (inputedNum > data.length / pageSize) {
+                curPage = data.length / pageSize
+            } else if (inputedNum < 1) {
+                curPage = 1;
+            } else {
+                curPage = parseInt(document.querySelector("#page-input").value)
+            }
+            try {
+                renderTable();
+            } catch {
+                curPage = 1;
+                renderTable();
+            }
+        }
+    })
 }
   
 function renderTable() {
+
+    // Calculate displayed tables
     let result = '';
     data.filter((row, index) => {
         let start = (curPage-1)*pageSize;
@@ -314,6 +336,7 @@ function renderTable() {
     });
     table.innerHTML = result;
 
+    // Track user selected rows
     modelRows = document.getElementsByTagName("tr")
     for (let i = 1; i < 11; i ++) {
         modelRows[i].addEventListener("click", () => {
@@ -327,7 +350,14 @@ function renderTable() {
             rowSelected.querySelector("input").setAttribute("checked", true)
         })
     }
+
+    // Update table page number
+    let inputValue = parseInt(document.querySelector("#page-input").value)
+    if (inputValue !== curPage) {
+        document.querySelector("#page-input").value = parseInt(curPage)
+    }
 }
+
 
 function firstPage() {
     curPage = 1;
@@ -355,13 +385,13 @@ async function initResultTable() {
   
     // Select table and load
     resultTable = document.querySelector('#result-table tbody');
-    renderResultTable();
 
     // Load table arrows
     document.getElementById("results").innerHTML += `
     <div class="pagination-wrap" id="result-pagination">
         <button class="pagination-bt" id="firstButtonResult"><span class="material-symbols-outlined">first_page</span></button> 
         <button class="pagination-bt" id="prevButtonResult"><span class="material-symbols-outlined">chevron_left</span></button> 
+        <input class="pagination-in" id="result-page-input" type="number" value="1">
         <button class="pagination-bt" id="nextButtonResult"><span class="material-symbols-outlined">chevron_right</span></button>
         <button class="pagination-bt" id="lastButtonResult"><span class="material-symbols-outlined">last_page</span></button> 
     </div>`
@@ -371,11 +401,31 @@ async function initResultTable() {
     document.querySelector('#nextButtonResult').addEventListener('click', nextPageResult, false);
     document.querySelector('#prevButtonResult').addEventListener('click', previousPageResult, false);
     document.querySelector('#lastButtonResult').addEventListener('click', lastPageResult, false);
-
+    document.querySelector("#result-page-input").addEventListener("input", (e) => {
+        if (e.data) {
+            const inputedNum = parseInt(document.querySelector("#result-page-input").value)
+            if (inputedNum > data.length / pageSize) {
+                curResultPage = data.length / pageSize
+            } else if (inputedNum < 1) {
+                curResultPage = 1;
+            } else {
+                curResultPage = parseInt(document.querySelector("#result-page-input").value)
+            }
+            try {
+                renderResultTable();
+            } catch {
+                curResultPage = 1;
+                renderResultTable();
+            }
+        }
+    })
+    renderResultTable();
     resultTableLoaded = true;
 }
   
 function renderResultTable() {
+
+    // Calculate displayed tables
     let result = '';
     allPointsResultsData.filter((row, index) => {
         let start = (curResultPage-1)*pageSize;
@@ -386,6 +436,12 @@ function renderResultTable() {
     });
     document.querySelector('#result-table tbody').innerHTML = result;
     resultTable = document.querySelector('#result-table tbody')
+
+    // Update table page number
+    let inputValue = parseInt(document.querySelector("#result-page-input").value)
+    if (inputValue !== curResultPage) {
+        document.querySelector("#result-page-input").value = parseInt(curResultPage)
+    }
 }
 
 async function removeResultTable() {
