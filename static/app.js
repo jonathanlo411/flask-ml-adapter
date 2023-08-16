@@ -1,5 +1,9 @@
 
 function main() {
+    hljs.configure({
+        ignoreUnescapedHTML: true
+    });
+
     initTable()
     initModelStream()
 }
