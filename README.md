@@ -1,10 +1,7 @@
 <div align="center">
 <h1>Flask ML Adapter</h1>
 <a href="https://github.com/jonathanlo411/flask-ml-adapter/releases"><img src="https://img.shields.io/github/v/release/jonathanlo411/flask-ml-adapter?color=f56827"></a><a href="https://github.com/jonathanlo411/flask-ml-adapter/blob/main/LICENSE"><img src="https://img.shields.io/github/license/jonathanlo411/flask-ml-adapter"></a>
-<br><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/flask
-"><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/scikit-learn
-"><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/keras"
-><br>
+<br><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/flask"><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/scikit-learn"><img src="https://img.shields.io/github/pipenv/locked/dependency-version/jonathanlo411/flask-ml-adapter/keras"><br>
 <a href="https://mybinder.org/v2/gh/jonathanlo411/flask-ml-adapter/main?labpath=model-dev%2Fmodel-dev.ipynb"><img src="https://mybinder.org/badge_logo.svg"></a>
 <p style="text-align: center;">An adapter example to receive ML model responses over HTTPS.</p>
 </div>
