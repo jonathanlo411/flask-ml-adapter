@@ -9,6 +9,7 @@ This application demonstrates how python models can be called from a different c
 2. Select a point from the table
 3. Hit "Submit Classifier Request"
 4. View Results and Code Generation below
+![screenshot of application](https://cdn.discordapp.com/attachments/942218891952783421/1141168195340877834/image.png)
 
 ## Setup
 1. Clone the repository.
