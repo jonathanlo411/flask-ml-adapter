@@ -39,19 +39,31 @@ def model():
             return {
                 "success": 0,
                 "message": "Invalid Model"
-            }, 403
+            }, 400
         model = args.get('model')
-        point = request.get_json()
-        return call_model(model, point)
+        submitData = request.get_json()
+        if isinstance(submitData, list):
+            return handle_batch_request(model, submitData)
+        elif isinstance(submitData, dict):
+            return call_model(model, submitData)
+        else:
+            return {
+                "success": 0,
+                "message": "Invalid Model"
+            }, 400
+
 
 
 # --- Helpers ---
 
-def call_model(model_name, point):
-    # try:
+def call_model(model_name, point, batch=False):
+    try:
         if model_name == 'KerasFNN.pkl':
             # Load point
-            point_df = DataFrame(point, index=['0'])
+            if batch:
+                point_df = point
+            else:
+                point_df = DataFrame(point, index=['0'])
             column_data_types = {
                 "PassengerId": int,
                 "Pclass": int,
@@ -81,7 +93,10 @@ def call_model(model_name, point):
 
         else:
             # Load point
-            point_df = DataFrame(point, index=['0'])
+            if batch:
+                point_df = point
+            else:
+                point_df = DataFrame(point, index=['0'])
             point_df = point_df.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1)
             if 'Survived' in point_df:
                 point_df = point_df.drop(['Survived'], axis=1)
@@ -94,10 +109,47 @@ def call_model(model_name, point):
                 "message": f"Model prediction for model: {model_name}",
                 "prediction": int(predictions)
             }, 200
-    # except Exception as e:
-    #     print(e, flush=True)
-    #     return {
-    #         "success": 0,
-    #         "message": "Internal Server Error"
-    #     }, 500
+    except Exception as e:
+        print(e, flush=True)
+        return {
+            "success": 0,
+            "message": "Internal Server Error"
+        }, 500
 
+def handle_batch_request(model, submitData):
+    submitDataHeaders = submitData.pop(0)
+    errors = []
+    predResponses = {}
+    
+    # Attempt to handle a mass submit otherwise iterate one by one
+    try:
+        submitDataDF = DataFrame(submitData, columns=submitDataHeaders)
+        pred_result = call_model(model, submitDataDF, batch=True)
+        if 'success' in pred_result[0] and pred_result[0]['success'] == 0:
+            raise ValueError()
+        return {
+            "success": 1,
+            "message": f"Model prediction for model: {model}",
+            "prediction": pred_result
+        }, 200
+    except Exception as e:
+        for dataRow in submitData:
+            try:
+                point = dict(zip(submitDataHeaders, dataRow))
+                pred_result = call_model(model, point)
+                if 'success' in pred_result[0] and pred_result[0]['success'] == 0:
+                    raise ValueError()
+                predResponses[point['PassengerId']] = pred_result[0]['prediction']
+            except Exception as e:
+                errors.append(point['PassengerId'])
+
+    dataReturn = ({
+        "success": 1,
+        "message": f"Model prediction for model: {model}",
+        "prediction": predResponses,
+        "errors": errors
+    }, 200) if len(errors) < len(submitData) else ({
+        "success": 0,
+        "message": "Internal Server Error"
+    }, 500)
+    return dataReturn
