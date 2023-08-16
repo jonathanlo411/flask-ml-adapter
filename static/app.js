@@ -129,6 +129,10 @@ fetch( "/api/model?" + new URLSearchParams({
         
         // Inject results into page
         document.getElementById("pred-val").innerHTML = modelPrediction.prediction ?? "ERROR"
+        document.getElementById("code-response").innerHTML = JSON.stringify(modelPrediction, null, 4)
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
     } catch (error) {
         document.getElementById("pred-val").innerHTML = "ERROR"
     }
@@ -229,6 +233,20 @@ fetch( "/api/model?" + new URLSearchParams({
             initResultTable()
         }
         renderResultTable();
+
+        let formatedResponse = rawResponse;
+        let formatedPreds = {
+            "1": rawResponse.prediction[1],
+            "2": rawResponse.prediction[2],
+            "3": rawResponse.prediction[3],
+            "last": "val" 
+        }
+        formatedResponse.prediction = formatedPreds
+        document.getElementById("code-response").innerHTML = JSON.stringify(formatedResponse, null, 4)
+            .replace('"last": "val"', "<...>")
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
     } catch {
         document.getElementById("pred-val").innerHTML = "ERROR"
     }
