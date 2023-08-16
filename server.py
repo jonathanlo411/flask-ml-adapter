@@ -1,9 +1,11 @@
 # Imports
 import os
+from tqdm import tqdm
 from flask import Flask, request, render_template
 import csv
 
 from pandas import DataFrame
+from numpy import nan
 from joblib import load
 from util import *
 
@@ -64,26 +66,12 @@ def call_model(model_name, point, batch=False):
                 point_df = point
             else:
                 point_df = DataFrame(point, index=['0'])
-            column_data_types = {
-                "PassengerId": int,
-                "Pclass": int,
-                "Name": str,
-                "Sex": str,
-                "Age": float,
-                "SibSp": int,
-                "Parch": int,
-                "Ticket": str,
-                "Fare": float,
-                "Cabin": str,
-                "Embarked": str
-            }
-            for column, data_type in column_data_types.items():
-                point_df[column] = point_df[column].astype(data_type)
+            point_df = proccess_data(point_df)
             cleaned = preproccess_nn(point_df)
 
             # Load model and make preds
             model = load(f'./models/{model_name}')
-            y_pred_prob = model.predict(cleaned)
+            y_pred_prob = model.predict(cleaned, verbose = 0)
             y_pred = (y_pred_prob > 0.5).astype(int)
             return {
                 "success": 1,
@@ -97,9 +85,7 @@ def call_model(model_name, point, batch=False):
                 point_df = point
             else:
                 point_df = DataFrame(point, index=['0'])
-            point_df = point_df.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1)
-            if 'Survived' in point_df:
-                point_df = point_df.drop(['Survived'], axis=1)
+            point_df = proccess_data(point_df)
 
             # Load model and make preds
             model = load(f'./models/{model_name}')
@@ -133,7 +119,7 @@ def handle_batch_request(model, submitData):
             "prediction": pred_result
         }, 200
     except Exception as e:
-        for dataRow in submitData:
+        for dataRow in tqdm(submitData, total=len(submitData), bar_format='{l_bar}{bar:50}{r_bar}{bar:-50b}'):
             try:
                 point = dict(zip(submitDataHeaders, dataRow))
                 pred_result = call_model(model, point)
@@ -153,3 +139,27 @@ def handle_batch_request(model, submitData):
         "message": "Internal Server Error"
     }, 500)
     return dataReturn
+
+def proccess_data(point_df):
+    column_data_types = {
+        "PassengerId": int,
+        "Pclass": int,
+        "Name": str,
+        "Sex": str,
+        "Age": float,
+        "SibSp": int,
+        "Parch": int,
+        "Ticket": str,
+        "Fare": float,
+        "Cabin": str,
+        "Embarked": str
+    }
+    for column, data_type in column_data_types.items():
+        try:
+            point_df[column] = point_df[column].astype(data_type)
+        except ValueError as e:
+            point_df[column] = nan
+    point_df = point_df.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1)
+    if 'Survived' in point_df:
+        point_df = point_df.drop(['Survived'], axis=1)
+    return point_df
