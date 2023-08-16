@@ -6,6 +6,8 @@ certifi==2023.7.22
 charset-normalizer==3.2.0
 click==8.1.6
 colorama==0.4.6
+distlib==0.3.7
+filelock==3.12.2
 Flask==2.3.2
 flatbuffers==23.5.26
 gast==0.4.0
@@ -28,6 +30,8 @@ oauthlib==3.2.2
 opt-einsum==3.3.0
 packaging==23.1
 pandas==1.5.3
+pipenv==2023.7.23
+platformdirs==3.10.0
 protobuf==4.24.0
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
@@ -47,8 +51,11 @@ tensorflow-intel==2.13.0
 tensorflow-io-gcs-filesystem==0.31.0
 termcolor==2.3.0
 threadpoolctl==3.2.0
+tqdm==4.66.1
 typing_extensions==4.5.0
 urllib3==1.26.16
+virtualenv==20.24.3
+virtualenv-clone==0.5.7
 Werkzeug==2.3.7
 wrapt==1.15.0
 zipp==3.16.2
