@@ -11,16 +11,23 @@ function initModelStream() {
     const submitAll = document.querySelector('#s-all')
 
     submitPoint.addEventListener("click", handleModelReq)
-    submitPoint.point = true
-    submitAll.addEventListener("click", handleModelReq)
+    submitPoint.custom = false
+    submitAll.addEventListener("click", handleModelBatchReq)
 }
 
 async function handleModelReq(e) {
+
+    // Disable buttons to prevent mass submissions
+    toggleSubmitButtons(false)
+    
     // Gather selection information if pred singular point
     let submitData = {};
-    let point = e.currentTarget.point;
+    let custom = e.currentTarget.custom;
     let model = document.getElementById("model-select").value
-    if (point) {
+    if (custom) {
+        // Handle Custom point
+    } else {
+        // Handle Selected Table Data
         if (!rowSelected) {
             alert("Please select a data point if using a singular classifier.")
         } else {
@@ -28,29 +35,28 @@ async function handleModelReq(e) {
                 submitData[dataHeaders[i]] = rowSelected.childNodes[i + 1].innerHTML
             }
         }
-    } else {
-        // Handle Classify All Points
     }
+
+    // Enable singular point result view
+    if (resultTableLoaded) { await removeResultTable() }
 
     // Show samples requests
     document.querySelector('#curl pre code').innerHTML = `
 curl -X POST \\
     -H "Content-Type: application/json" \\
-    -d '[
-          {
-              "PassengerId": "${submitData.PassengerId}",
-              "Pclass": "${submitData.Pclass}",
-              "Name": "${submitData.Name}",
-              "Sex": "${submitData.Sex}",
-              "Age": "${submitData.Age}",
-              "SibSp": "${submitData.SibSp}",
-              "Parch": "${submitData.Parch}",
-              "Ticket": "${submitData.Ticket}",
-              "Fare": "${submitData.Fare}",
-              "Cabin": "${submitData.Cabin}",
-              "Embarked": "${submitData.Embarked}"
-          }
-        ]' \\
+    -d '{
+        "PassengerId": "${submitData.PassengerId}",
+        "Pclass": "${submitData.Pclass}",
+        "Name": "${submitData.Name}",
+        "Sex": "${submitData.Sex}",
+        "Age": "${submitData.Age}",
+        "SibSp": "${submitData.SibSp}",
+        "Parch": "${submitData.Parch}",
+        "Ticket": "${submitData.Ticket}",
+        "Fare": "${submitData.Fare}",
+        "Cabin": "${submitData.Cabin}",
+        "Embarked": "${submitData.Embarked}"
+    }' \\
     "127.0.0.1:5000/api/model?model=${model}"  
 `
     document.querySelector('#python pre code').innerHTML = `
@@ -107,23 +113,127 @@ fetch( "/api/model?" + new URLSearchParams({
         hljs.highlightElement(el);
     });
 
-    // Inidicate Loading
+    // Inidicate Loading and request type
     document.getElementById("identifier").innerHTML = submitData.PassengerId
-    document.getElementById("pred-val").innerHTML = "..."
+    document.getElementById("pred-val").innerHTML = "Loading..."
     document.getElementById("act-val").innerHTML = submitData.Survived
+    document.getElementById("result-dataset").innerHTML = "titanic.csv"
+    document.getElementById("result-model").innerHTML = model
+    document.getElementById("result-target").innerHTML = custom ? "point (custom)" : "point"
 
     // Call model
     try {
         let modelPrediction = await callModel(model, submitData);
         
         // Inject results into page
-        document.getElementById("result-dataset").innerHTML = "titanic.csv"
-        document.getElementById("result-model").innerHTML = model
-        document.getElementById("result-target").innerHTML = point ? "point" : "all"
         document.getElementById("pred-val").innerHTML = modelPrediction.prediction
     } catch (error) {
         document.getElementById("pred-val").innerHTML = "ERROR"
     }
+
+    // Re-enable buttons
+    toggleSubmitButtons(true)
+}
+
+async function handleModelBatchReq() {
+
+    // Disable buttons to prevent mass submissions
+    toggleSubmitButtons(false)
+
+    // Enable singular point result view
+    if (resultTableLoaded) { await removeResultTable() }
+
+    // Gather all table elements
+    let model = document.getElementById("model-select").value
+    let submitData = [tableHeaders, ...data]
+
+    // Inidicate Loading and request type
+    document.getElementById("identifier").innerHTML = "Loading..."
+    document.getElementById("pred-val").innerHTML = "Loading..."
+    document.getElementById("act-val").innerHTML = "Loading..."
+    document.getElementById("result-dataset").innerHTML = "titanic.csv"
+    document.getElementById("result-model").innerHTML = model
+    document.getElementById("result-target").innerHTML = "all"
+
+    // Show samples requests
+    const headersCleaned = tableHeaders.toString().replace("Survived,", "").replace("ked,", "ked")
+    document.querySelector('#curl pre code').innerHTML = `
+curl -X POST \\
+    -H "Content-Type: application/json" \\
+    -d '[
+        [${headersCleaned}],
+        [${data[0]}],
+        [${data[1]}],
+        [${data[2]}],
+        <...>
+    ]' \\
+    "127.0.0.1:5000/api/model?model=${model}"  
+`
+    document.querySelector('#python pre code').innerHTML = `
+import requests
+res = requests.post(
+    url="http://127.0.0.1:5000/api/model",
+    params = {
+        "model": "${model}"
+    },
+    headers = {
+        "Content-Type": "application/json"
+    },
+    json = [
+        [${headersCleaned}],
+        [${data[0]}],
+        [${data[1]}],
+        [${data[2]}],
+        <...>
+    ]
+)
+`
+    document.querySelector('#javascript pre code').innerHTML = `
+fetch( "/api/model?" + new URLSearchParams({
+        model: ${model}
+    }) , {
+        method: "POST",
+        cache: "no-cache",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+            [${headersCleaned}],
+            [${data[0]}],
+            [${data[1]}],
+            [${data[2]}],
+            <...>
+        ])
+    }
+)
+`
+    document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+    });
+    
+    // Show results if res is good otherwise show errors
+    try {
+        let rawResponse = await callModel(model, submitData);
+
+        let curatedResults = [];
+        for (let i = 0; i < data.length; i ++) {
+            const correct = data[i][1];
+            const prediction = rawResponse["prediction"][i] ?? "ERROR";
+            const identifier = i + 1;
+            curatedResults.push([identifier, prediction, correct]);
+        }
+        allPointsResultsData = curatedResults;
+        if (!resultTableLoaded) {
+            initResultTable()
+        }
+        renderResultTable();
+    } catch {
+
+    }
+
+    // Re-enable buttons
+    toggleSubmitButtons(true)
+
 }
 
 async function callModel(model, submitData) {
@@ -139,6 +249,26 @@ async function callModel(model, submitData) {
         }
     )
     return await res.json()
+}
+
+function toggleSubmitButtons(toggleOn) {
+    const sBT = document.getElementById("s-point")
+    const aBT = document.getElementById("s-all")
+    if (toggleOn) {
+        sBT.removeAttribute("disabled")
+        aBT.removeAttribute("disabled")
+        sBT.classList.add("submit-bt")
+        aBT.classList.add("submit-bt")
+        sBT.classList.remove("disabled")
+        aBT.classList.remove("disabled")
+    } else {
+        sBT.setAttribute("disabled", true)
+        aBT.setAttribute("disabled", true)
+        sBT.classList.remove("submit-bt")
+        aBT.classList.remove("submit-bt")
+        sBT.classList.add("disabled")
+        aBT.classList.add("disabled")
+    }
 }
 
 // Table Pagination Data
@@ -214,6 +344,77 @@ function nextPage() {
 function lastPage() {
     curPage = data.length / pageSize;
     renderTable()
+}
+
+// TResult able Pagination Data
+let allPointsResultsData, resultTable;
+let curResultPage = 1;
+let resultTableLoaded = false;
+
+async function initResultTable() {
+  
+    // Select table and load
+    resultTable = document.querySelector('#result-table tbody');
+    renderResultTable();
+
+    // Load table arrows
+    document.getElementById("results").innerHTML += `
+    <div class="pagination-wrap" id="result-pagination">
+        <button class="pagination-bt" id="firstButtonResult"><span class="material-symbols-outlined">first_page</span></button> 
+        <button class="pagination-bt" id="prevButtonResult"><span class="material-symbols-outlined">chevron_left</span></button> 
+        <button class="pagination-bt" id="nextButtonResult"><span class="material-symbols-outlined">chevron_right</span></button>
+        <button class="pagination-bt" id="lastButtonResult"><span class="material-symbols-outlined">last_page</span></button> 
+    </div>`
+    
+    // Add pagination listeners
+    document.querySelector('#firstButtonResult').addEventListener('click', firstPageResult, false);
+    document.querySelector('#nextButtonResult').addEventListener('click', nextPageResult, false);
+    document.querySelector('#prevButtonResult').addEventListener('click', previousPageResult, false);
+    document.querySelector('#lastButtonResult').addEventListener('click', lastPageResult, false);
+
+    resultTableLoaded = true;
+}
+  
+function renderResultTable() {
+    let result = '';
+    allPointsResultsData.filter((row, index) => {
+        let start = (curResultPage-1)*pageSize;
+        let end = curResultPage*pageSize;
+        if(index >= start && index < end) return true;
+    }).forEach(rowData => {
+        result += `<tr><td>${rowData.join('</td><td>')}</td></tr>`
+    });
+    document.querySelector('#result-table tbody').innerHTML = result;
+    resultTable = document.querySelector('#result-table tbody')
+}
+
+async function removeResultTable() {
+    document.querySelector('#result-table tbody').innerHTML = `
+    <tr>
+        <td id="identifier">...</td>
+        <td id="pred-val">...</td>
+        <td id="act-val">...</td>
+    </tr>
+    `
+    document.getElementById("result-pagination").remove()
+    resultTableLoaded = false;
+}
+
+function firstPageResult() {
+    curResultPage = 1;
+    renderResultTable();
+}
+function previousPageResult() {
+    if(curResultPage > 1) curResultPage--;
+    renderResultTable();
+}
+function nextPageResult() {
+    if((curResultPage * pageSize) < allPointsResultsData.length) curResultPage++;
+    renderResultTable();
+}
+function lastPageResult() {
+    curResultPage = allPointsResultsData.length / pageSize;
+    renderResultTable()
 }
 
 main()
