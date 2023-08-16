@@ -128,7 +128,7 @@ fetch( "/api/model?" + new URLSearchParams({
         let modelPrediction = await callModel(model, submitData);
         
         // Inject results into page
-        document.getElementById("pred-val").innerHTML = modelPrediction.prediction
+        document.getElementById("pred-val").innerHTML = modelPrediction.prediction ?? "ERROR"
     } catch (error) {
         document.getElementById("pred-val").innerHTML = "ERROR"
     }
